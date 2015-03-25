@@ -812,9 +812,9 @@ module Prelude
     top :: a
     bottom :: a
 
-  -- | - Complemented:
-  -- |   - `a || b = top`
-  -- |   - `a && b = bottom`
+  -- | - Relatively complemented:
+  -- |   - `a || b = d`
+  -- |   - `a && b = c`
   class (Lattice a) <= ComplementedLattice a where
     not :: a -> a
 
@@ -823,16 +823,6 @@ module Prelude
 
   -- | The `BoolLike` type class identifies types which support Boolean
   -- | operations.
-  -- |
-  -- | `BoolLike` instances are required to the laws of
-  -- | `ComplementedLattice`, `DistributiveLattice`, and the following
-  -- | additional laws:
-  -- |
-  -- | - Relatively complemented:
-  -- |   - `a || b = d`
-  -- |   - `a && b = c`
-  -- | - Annilation:
-  -- |   - `a && bottom = bottom`
   class (ComplementedLattice a, DistributiveLattice a) <= BoolLike a
 
   foreign import boolAnd
