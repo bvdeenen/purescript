@@ -23,8 +23,10 @@ module Prelude
   , Eq, (==), (/=)
   , Ord, Ordering(..), compare, (<), (>), (<=), (>=)
   , Bits, (.&.), (.|.), (.^.), shl, shr, zshr, complement
-  , BoolLike, (&&), (||)
-  , not
+  , Lattice, (&&), (||), top, bottom
+  , ComplementedLattice, not
+  , DistributiveLattice
+  , BoolLike
   , Semigroup, (<>), (++)
   , Unit(..), unit
   ) where
@@ -789,14 +791,49 @@ module Prelude
   infixr 2 ||
   infixr 3 &&
 
-  -- | The `BoolLike` type class identifies types which support Boolean operations.
+  -- | - Associative:
+  -- |   - `a || (b || c) = (a || b) || c`
+  -- |   - `a && (b && c) = (a && b) && c`
+  -- | - Commutative:
+  -- |   - `a || b = b || a`
+  -- |   - `a && b = b && a`
+  -- | - Absorption:
+  -- |   - `a || (a && b) = a`
+  -- |   - `a && (a || b) = a`
+  -- | - Idempotent:
+  -- |   - `a || a = a`
+  -- |   - `a && a = a`
+  -- | - Identity:
+  -- |   - `a || bottom = a`
+  -- |   - `a && top = a`
+  class (Ord a) <= Lattice a where
+    (&&) :: a -> a -> a
+    (||) :: a -> a -> a
+    top :: a
+    bottom :: a
+
+  -- | - Complemented:
+  -- |   - `a || b = top`
+  -- |   - `a && b = bottom`
+  class (Lattice a) <= ComplementedLattice a where
+    not :: a -> a
+
+  -- | - Distributivity: `x && (y || z) = (x && y) || (x && z)`
+  class (Lattice a) <= DistributiveLattice a where
+
+  -- | The `BoolLike` type class identifies types which support Boolean
+  -- | operations.
   -- |
-  -- | `BoolLike` instances are required to satisfy the laws of a _Boolean algebra_.
+  -- | `BoolLike` instances are required to the laws of
+  -- | `ComplementedLattice`, `DistributiveLattice`, and the following
+  -- | additional laws:
   -- |
-  class BoolLike b where
-    (&&) :: b -> b -> b
-    (||) :: b -> b -> b
-    not :: b -> b
+  -- | - Relatively complemented:
+  -- |   - `a || b = d`
+  -- |   - `a && b = c`
+  -- | - Annilation:
+  -- |   - `a && bottom = bottom`
+  class (ComplementedLattice a, DistributiveLattice a) <= BoolLike a
 
   foreign import boolAnd
     """
@@ -823,10 +860,18 @@ module Prelude
     }
     """ :: Boolean -> Boolean
 
-  instance boolLikeBoolean :: BoolLike Boolean where
+  instance latticeBoolean :: Lattice Boolean where
     (&&) = boolAnd
     (||) = boolOr
+    top = true
+    bottom = false
+
+  instance complementedLatticeBoolean :: ComplementedLattice Boolean where
     not = boolNot
+
+  instance distributiveLatticeBoolean :: DistributiveLattice Boolean
+
+  instance booleanAlgebraBoolean :: BoolLike Boolean
 
   infixr 5 <>
 
