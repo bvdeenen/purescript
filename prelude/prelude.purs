@@ -819,7 +819,7 @@ module Prelude
     not :: a -> a
 
   -- | - Distributivity: `x && (y || z) = (x && y) || (x && z)`
-  class (Lattice a) <= DistributiveLattice a where
+  class (Lattice a) <= DistributiveLattice a
 
   -- | The `BoolLike` type class identifies types which support Boolean
   -- | operations.
